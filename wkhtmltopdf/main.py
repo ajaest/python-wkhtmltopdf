@@ -135,7 +135,7 @@ class WKHtmlToPdf(object):
             os.putenv("DISPLAY", '127.0.0.1:0')
 
         # execute the command
-        command = 'wkhtmltopdf %s "%s" "%s" >> /tmp/wkhtp.log' % (
+        command = 'xvfb-run wkhtmltopdf %s "%s" "%s" >> /tmp/wkhtp.log' % (
             " ".join([cmd for cmd in self.params]),
             self.url,
             self.output_file
