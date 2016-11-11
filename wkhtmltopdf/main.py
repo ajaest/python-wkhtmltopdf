@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import optparse
+import tempfile
 
 from subprocess import Popen
 from subprocess import PIPE
@@ -124,26 +125,20 @@ class WKHtmlToPdf(object):
         """
         Render the URL into a pdf and setup the evironment if required.
         """
-
-        # setup the environment if it isn't set up yet
-        if not os.getenv('DISPLAY'):
-            os.system("Xvfb :0 -screen 0 %sx%sx%s & " % (
-                self.screen_resolution[0],
-                self.screen_resolution[1],
-                self.color_depth
-            ))
-            os.putenv("DISPLAY", '127.0.0.1:0')
-
         # execute the command
-        command = 'xvfb-run wkhtmltopdf %s "%s" "%s" >> /tmp/wkhtp.log' % (
+        log_fd, log_path = tempfile.mkstemp('.log', 'wkhtp', text=True)
+
+        command = 'wkhtmltopdf %s "%s" "%s" >> %s' % (
             " ".join([cmd for cmd in self.params]),
             self.url,
-            self.output_file
+            self.output_file,
+            log_path
         )
         try:
             p = Popen(command, shell=True, stdout=PIPE, stderr=PIPE, close_fds=True)
             stdout, stderr = p.communicate()
             retcode = p.returncode
+            os.close(log_fd)
 
             if retcode == 0:
                 # call was successful
